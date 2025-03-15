@@ -12,78 +12,104 @@ import {
   Box,
   CircularProgress,
 } from "@mui/material";
+import { CheckCircleOutline } from "@mui/icons-material"; // Success Icon
 
 const BackupSuccess = () => {
-  const [logins, setLogins] = useState([]);
+  const [backupData, setBackupData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchLogins = async () => {
+    const fetchBackupData = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/data");
+        const response = await axios.get("http://192.168.1.81:5000/BSdata");
         if (response.data.success) {
-          setLogins(response.data.logins);
+          setBackupData(response.data.logins);
         } else {
-          setError("❌ Failed to fetch logins");
+          setError("❌ Failed to fetch backup success data");
         }
       } catch (error) {
-        setError("❌ Failed to fetch logins");
+        setError("❌ Failed to fetch backup success data");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchLogins();
+    fetchBackupData();
   }, []);
 
   return (
     <Box sx={{ padding: "30px" }}>
-      <Typography variant="h4" align="center" gutterBottom>
-        🔐 Login Records
+      {/* Header Title */}
+      <Typography
+        variant="h4"
+        align="center"
+        gutterBottom
+        sx={{
+          color: "#1E3A8A", // Royal Blue
+          fontWeight: "bold",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <CheckCircleOutline sx={{ marginRight: 1, color: "#1E3A8A" }} /> {/* Gold Icon */}
+        Backup Success Data
       </Typography>
 
+      {/* Loading and Error Messages */}
       {loading ? (
         <Box display="flex" justifyContent="center" mt={3}>
-          <CircularProgress />
+          <CircularProgress sx={{ color: "#1E3A8A" }} /> {/* Royal Blue Loader */}
         </Box>
       ) : error ? (
         <Typography color="error" align="center">
           {error}
         </Typography>
-      ) : logins.length > 0 ? (
+      ) : backupData.length > 0 ? (
         <TableContainer
           component={Paper}
           sx={{
-            maxWidth: 800,
+            maxWidth: "100%",
+            borderRadius: "12px",
+            boxShadow: 4,
             margin: "auto",
-            borderRadius: "10px",
-            boxShadow: 3,
+            overflowX: "auto",
           }}
         >
-          <Table>
+          <Table sx={{ minWidth: 900 }}>
+            {/* Table Head - Gold Background */}
             <TableHead>
-              <TableRow sx={{ backgroundColor: "#1976d2" }}>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                  Full Name
-                </TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                  Username (Email)
-                </TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                  Password
-                </TableCell>
+              <TableRow sx={{ backgroundColor: "#1E3A8A" }}> {/* Gold Header */}
+                <TableCell sx={{ color: "#ffffff", fontWeight: "bold", padding: "12px" }}>Job Name</TableCell>
+                <TableCell sx={{ color: "#ffffff", fontWeight: "bold", padding: "12px" }}>Frequency</TableCell>
+                <TableCell sx={{ color: "#ffffff", fontWeight: "bold", padding: "12px" }}>Job Status</TableCell>
+                <TableCell sx={{ color: "#ffffff", fontWeight: "bold", padding: "12px" }}>Succeeded Date</TableCell>
               </TableRow>
             </TableHead>
+
+            {/* Table Body with Alternating Colors */}
             <TableBody>
-              {logins.map((login, index) => (
+              {backupData.map((backup, index) => (
                 <TableRow
                   key={index}
-                  sx={{ "&:nth-of-type(odd)": { backgroundColor: "#f5f5f5" } }}
+                  sx={{
+                    backgroundColor: index % 2 === 0 ? "#E3F2FD" : "#F5F5F5", // Light Blue & Soft White
+                    "&:hover": { backgroundColor: "#BBDEFB" }, // Sky Blue Hover
+                  }}
                 >
-                  <TableCell>{login.name}</TableCell>
-                  <TableCell>{login.username}</TableCell>
-                  <TableCell>{login.password}</TableCell>
+                  <TableCell sx={{ padding: "8px", color: "#1E3A8A", fontWeight: "bold" }}>
+                    {backup.job_name}
+                  </TableCell>
+                  <TableCell sx={{ padding: "8px", color: "#1E3A8A", fontWeight: "bold" }}>
+                    {backup.frequency}
+                  </TableCell>
+                  <TableCell sx={{ padding: "8px", color: "#1E3A8A", fontWeight: "bold" }}>
+                    {backup.job_status}
+                  </TableCell>
+                  <TableCell sx={{ padding: "px", color: "#1E3A8A", fontWeight: "bold" }}>
+                    {backup.succeeded_date}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -91,7 +117,7 @@ const BackupSuccess = () => {
         </TableContainer>
       ) : (
         <Typography align="center" color="textSecondary">
-          No login records found.
+          No backup success data found.
         </Typography>
       )}
     </Box>

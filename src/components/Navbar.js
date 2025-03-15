@@ -136,7 +136,7 @@ export default function Navbar() {
                 <AssessmentIcon />
               </ListItemIcon>
               <ListItemText
-                primary="Performance"
+                primary="Matrix"
                 sx={{ opacity: open ? 1 : 0 }}
               />
             </ListItemButton>

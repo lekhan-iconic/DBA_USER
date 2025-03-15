@@ -8,7 +8,6 @@ import {
   Typography,
   Paper,
   Alert,
-  Box,
 } from "@mui/material";
 
 const Login = () => {
@@ -22,12 +21,13 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const response = await axios.post("http://localhost:5000/login", {
+      const response = await axios.post("http://192.168.1.81:5000/login", {
         username,
         password,
       });
 
       if (response.data.success) {
+        localStorage.setItem("auth", "true"); // Store authentication flag
         setMessage(response.data.message);
         setError(false);
         setTimeout(() => navigate("/navbar"), 1000);

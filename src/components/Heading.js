@@ -1,38 +1,43 @@
-import { Box } from "@mui/material";
 import React from "react";
+import { AppBar, Box, Toolbar, Typography, Button } from "@mui/material";
 import { Link } from "react-router-dom";
-import "bootstrap/dist/css/bootstrap.min.css"; // Make sure Bootstrap is imported
+import LogoutIcon from "@mui/icons-material/Logout"; // MUI Logout Icon
 
 export default function Heading() {
   return (
-    <div>
-      <Box sx={{ display: "flex" }}>
-        <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
-          <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
-            <div className="container">
-              <a className="navbar-brand" href="#">
-                DBA Dashboard
-              </a>
+    <Box sx={{ display: "flex" }}>
+      <AppBar
+        position="static"
+        sx={{
+          backgroundColor: "#00008B", // Deep Blue color
+          borderRadius: "10px", // Rounded corners
+          padding: "2px",
+        }}
+      >
+        <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+          {/* Dashboard Title */}
+          <Typography variant="h6" component="div" sx={{ fontWeight: "bold" }}>
+            DBA Dashboard
+          </Typography>
 
-              <button
-                className="navbar-toggler"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#navbarSupportedContent"
-                aria-controls="navbarSupportedContent"
-                aria-expanded="false"
-                aria-label="Toggle navigation"
-              >
-                <span className="navbar-toggler-icon"></span>
-              </button>
-
-              <Link type="button" className="btn btn-light" to="/">
-                LogOut
-              </Link>
-            </div>
-          </nav>
-        </Box>
-      </Box>
-    </div>
+          {/* Logout Button */}
+          <Button
+            component={Link}
+            to="/"
+            variant="contained"
+            color="secondary"
+            startIcon={<LogoutIcon />}
+            sx={{
+              backgroundColor: "white",
+              color: "#00008B",
+              borderRadius: "8px", // Rounded button
+              "&:hover": { backgroundColor: "#e0e0e0" }, // Light hover effect
+            }}
+          >
+            Logout
+          </Button>
+        </Toolbar>
+      </AppBar>
+    </Box>
   );
 }
