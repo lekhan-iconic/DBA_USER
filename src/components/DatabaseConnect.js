@@ -8,36 +8,48 @@ import {
   Typography,
   Paper,
   Alert,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
 import API_BASE_URL from "./Config";
+import img from "../asssets/DBM.jpg"
 
-const Login = () => {
-  const [username, setUsername] = useState("");
+const DatabaseConnect = () => {
+  const [user, setUser] = useState("");
   const [password, setPassword] = useState("");
+  const [server, setServer] = useState(""); 
   const [message, setMessage] = useState("");
   const [error, setError] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  const serverIPs = {
+    SAAS: "172.16.22.57",
+    JAKARTHA: "34.101.158.167",
+  };
+
+  const handleConnect = async (e) => {
     e.preventDefault();
+    const serverIP = serverIPs[server] || "";
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/login`, {
-        username,
+      const response = await axios.post(`${API_BASE_URL}/connect-db`, {
+        user,
         password,
+        server: serverIP, 
       });
 
       if (response.data.success) {
-        localStorage.setItem("auth", "true"); // Store authentication flag
         setMessage(response.data.message);
         setError(false);
-        setTimeout(() => navigate("/Dashboard"), 1000);
+        setTimeout(() => navigate("/login"), 1000);
       } else {
         setMessage(response.data.message);
         setError(true);
       }
     } catch (error) {
-      console.error("Login failed:", error);
+      console.error("Connection failed:", error);
       setMessage("Server Error. Try again later.");
       setError(true);
     }
@@ -51,35 +63,63 @@ const Login = () => {
         justifyContent: "center",
         alignItems: "center",
         minHeight: "100vh",
+        backgroundImage: `url(${img})`, // ✅ Set the image as the background
+        backgroundSize: "cover", // ✅ Ensures the image covers the container
+        backgroundPosition: "center", // ✅ Centers the image
+        backgroundRepeat: "no-repeat",
       }}
     >
       <Paper
         elevation={3}
-        sx={{ padding: "30px", width: "100%", textAlign: "center" }}
+        sx={{
+          padding: "30px",
+          width: "100%",
+          textAlign: "center",
+          backgroundColor: "rgba(255, 255, 255, 0.8)", // ✅ Slight transparency for readability
+          borderRadius: "10px",
+        }}
       >
         <Typography variant="h4" gutterBottom>
-          Login
+          Database Connection
         </Typography>
-        <form onSubmit={handleLogin}>
+        <form onSubmit={handleConnect}>
           <TextField
-            label="Username"
-            variant="outlined"
+            label="User"
             fullWidth
             margin="normal"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            value={user}
+            onChange={(e) => setUser(e.target.value)}
             required
           />
           <TextField
             label="Password"
             type="password"
-            variant="outlined"
             fullWidth
             margin="normal"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
+
+<FormControl fullWidth margin="normal"  >
+  <InputLabel >Select Server</InputLabel>
+  <Select
+    
+    value={server}
+    onChange={(e) => setServer(e.target.value)}
+    label="Select Server"
+    required
+    displayEmpty
+  >
+    <MenuItem value="">
+      <em>Select Server</em>
+    </MenuItem>
+    <MenuItem value="SAAS">SAAS - India</MenuItem>
+    <MenuItem value="JAKARTHA">SAAS - Jakarta</MenuItem>
+  </Select>
+</FormControl>
+
+
           <Button
             type="submit"
             variant="contained"
@@ -87,10 +127,9 @@ const Login = () => {
             fullWidth
             sx={{ mt: 2 }}
           >
-            Login
+            Connect
           </Button>
         </form>
-
         {message && (
           <Alert severity={error ? "error" : "success"} sx={{ mt: 2 }}>
             {message}
@@ -101,4 +140,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default DatabaseConnect;

@@ -16,6 +16,7 @@ import {
   Tooltip,
 } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
+import API_BASE_URL from "./Config";
 
 const truncateText = (text, limit) => {
   if (text && text.length > limit) {
@@ -33,7 +34,7 @@ const IndexFailed = () => {
   useEffect(() => {
     const fetchLogins = async () => {
       try {
-        const response = await axios.get("http://192.168.1.81:5000/IFdata");
+        const response = await axios.get(`${API_BASE_URL}/IFdata`);
         if (response.data.success) {
           setLogins(response.data.logins);
 

@@ -7,10 +7,9 @@ import {
 } from "@mui/material";
 import { CheckCircleOutline, CloudDownload,   } from "@mui/icons-material";
 import API_BASE_URL from "./Config";
-import { toast } from "react-toastify";
 
-const BackupSuccess = () => {
-  const [backupData, setBackupData] = useState([]);
+const AllBackupSucess = () => {
+  const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -21,56 +20,14 @@ const BackupSuccess = () => {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
 
-  useEffect(() => {
-    // Request notification permission if not already granted
-    if (Notification.permission !== "granted" && Notification.permission !== "denied") {
-      Notification.requestPermission();
-    }
-  
-    const fetchBackupFailedJobs = async () => {
-      try {
-        const response = await axios.get(`${API_BASE_URL}/BSdata`);
-        if (response.status === 200 && response.data.success) {
-          const failedJobs = response.data.data.filter(job => job.JobStatus === "Failed");
-          failedJobs.forEach(job => {
-            // Show toast notification
-            toast.error(
-              `🔴 Backup Job Failed!\nServer IP: ${job.ServerIP}\nJob Name: ${job.JobName}\nStatus: ${job.JobStatus}`,
-              { position: "top-right", autoClose: 5000 }
-            );
-  
-            // Show browser notification if the tab is not active
-            if (document.visibilityState === "hidden" && Notification.permission === "granted") {
-              new Notification("🔴 Backup Job Failed!", {
-                body: `Server IP: ${job.ServerIP}\nJob: ${job.JobName}`,
-                icon: "/icon.png", // Optional icon
-              });
-            }
-          });
-        } else {
-          console.error("Failed to fetch job data:", response);
-        }
-      } catch (error) {
-        console.error("Error fetching job data:", error);
-      }
-    };
-  
-    // Poll every 30 minutes (1800000 milliseconds)
-    const intervalId = setInterval(fetchBackupFailedJobs, 1800000);
-  
-    // Initial data fetch
-    fetchBackupFailedJobs();
-  
-    return () => clearInterval(intervalId); // Clean up on component unmount
-  }, []);
   
 
   useEffect(() => {
     const fetchBackupData = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/BSdata`);
+        const response = await axios.get(`${API_BASE_URL}/ABSdata`);
         console.log(response.data)
-        if (response.data.success) {
+        if (response.data.data) {
           let data = response.data.data;
 
           data = data.map(item => ({
@@ -80,7 +37,7 @@ const BackupSuccess = () => {
 
           data.sort((a, b) => new Date(b.SucceededDate || 0) - new Date(a.SucceededDate || 0));
 
-          setBackupData(data);
+          setData(data);
           setUniqueIPs([...new Set(data.map((item) => item.ServerIP))]);
           setUniqueJobStatuses([...new Set(data.map((item) => item.JobStatus))]);
 
@@ -97,12 +54,12 @@ const BackupSuccess = () => {
   }, []);
 
   useEffect(() => {
-    let filtered = backupData;
+    let filtered = data;
   
-    if (backupData.length > 0) {
+    if (data.length > 0) {
       // Find the latest date from available data
-      
-      
+     
+  
       // Apply additional filters
       if (selectedIP) filtered = filtered.filter(item => item.ServerIP === selectedIP);
       if (selectedStatus) filtered = filtered.filter(item => item.JobStatus === selectedStatus);
@@ -115,7 +72,7 @@ const BackupSuccess = () => {
     }
   
     setFilteredData(filtered);
-  }, [selectedIP, selectedStatus, fromDate, toDate, backupData]);
+  }, [selectedIP, selectedStatus, fromDate, toDate, data]);
   
 
   // Function to Convert Data to CSV and Download
@@ -129,13 +86,13 @@ const BackupSuccess = () => {
 
     const csvContent = [
       headers.join(","),  // Add headers
-      ...filteredData.map(backup => [
-        backup.ServerIP,
-        backup.JobName,
-        backup.JobEnabled,
-        backup.Frequency,
-        backup.JobStatus,
-        backup.SucceededDate ? backup.SucceededDate.split("T")[0] : "N/A"
+      ...filteredData.map(data => [
+        data.ServerIP,
+        data.JobName,
+        data.JobEnabled,
+        data.Frequency,
+        data.JobStatus,
+        data.SucceededDate ? data.SucceededDate.split("T")[0] : "N/A"
       ].join(","))
     ].join("\n");
 
@@ -175,8 +132,9 @@ const BackupSuccess = () => {
                 ))}
               </Select>
             </FormControl>
-            
-          
+            <TextField label="From Date" type="date" InputLabelProps={{ shrink: true }} value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+            <TextField label="To Date" type="date" InputLabelProps={{ shrink: true }} value={toDate} onChange={(e) => setToDate(e.target.value)} />
+          </Box>
 
           <Box display="flex" justifyContent="center" gap={1} mb={2}>
             {uniqueJobStatuses.map((status, index) => (
@@ -193,7 +151,6 @@ const BackupSuccess = () => {
               Download Report
             </Button>
           </Box>
-          </Box >
 
 
 
@@ -212,14 +169,14 @@ const BackupSuccess = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredData.map((backup, index) => (
+                {filteredData.map((data, index) => (
                   <TableRow key={index}>
-                    <TableCell>{backup.ServerIP}</TableCell>
-                    <TableCell>{backup.JobName}</TableCell>
-                    <TableCell>{backup.JobEnabled}</TableCell>
-                    <TableCell>{backup.Frequency}</TableCell>
-                    <TableCell>{backup.JobStatus}</TableCell>
-                    <TableCell>{backup.SucceededDate ? backup.SucceededDate.split("T")[0] : "N/A"}</TableCell>
+                    <TableCell>{data.ServerIP}</TableCell>
+                    <TableCell>{data.JobName}</TableCell>
+                    <TableCell>{data.JobEnabled}</TableCell>
+                    <TableCell>{data.Frequency}</TableCell>
+                    <TableCell>{data.JobStatus}</TableCell>
+                    <TableCell>{data.SucceededDate ? data.SucceededDate.split("T")[0] : "N/A"}</TableCell>
                     
                   </TableRow>
                 ))}
@@ -232,4 +189,4 @@ const BackupSuccess = () => {
   );
 };
 
-export default BackupSuccess;
+export default AllBackupSucess;

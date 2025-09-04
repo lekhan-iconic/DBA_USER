@@ -12,6 +12,7 @@ import {
   Box,
   CircularProgress,
 } from "@mui/material";
+import API_BASE_URL from "./Config";
 
 const LogshippingFailed = () => {
   const [logins, setLogins] = useState([]);
@@ -21,7 +22,7 @@ const LogshippingFailed = () => {
   useEffect(() => {
     const fetchLogins = async () => {
       try {
-        const response = await axios.get("http://192.168.1.81:5000/LSFdata");
+        const response = await axios.get(`${API_BASE_URL}/LSFdata`);
         if (response.data.success) {
           setLogins(response.data.logins);
         } else {

@@ -3,18 +3,22 @@ import Navbar from "../components/Navbar";
 import { Box } from "@mui/material";
 import Heading from "../components/Heading";
 
-const Security = () => {
+
+
+import AllArchivalSucess from "../components/AllArchivalSucess";
+
+const AASucess = () => {
   return (
     <>
       <Box sx={{ display: "flex" }}>
         <Navbar />
         <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
           <Heading />
-          This is Security Page
+          <AllArchivalSucess />
         </Box>
       </Box>
     </>
   );
 };
 
-export default Security;
+export default AASucess;

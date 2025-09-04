@@ -18,6 +18,7 @@ import AssessmentIcon from "@mui/icons-material/Assessment";
 import SecurityIcon from "@mui/icons-material/Security";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import { useNavigate } from "react-router-dom";
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 const drawerWidth = 240;
 
@@ -80,7 +81,7 @@ export default function Navbar() {
           <IconButton onClick={() => setOpen(!open)}>
             {theme.direction === "rtl" ? (
               <ChevronRightIcon />
-            ) : (
+            ) : ( 
               <ChevronLeftIcon />
             )}
           </IconButton>
@@ -90,7 +91,7 @@ export default function Navbar() {
           <ListItem
             disablePadding
             sx={{ display: "block" }}
-            onClick={() => navigate("/DBTasks")}
+            onClick={() => navigate("/Dashboard")}
           >
             <ListItemButton
               sx={{
@@ -109,7 +110,7 @@ export default function Navbar() {
                 <StorageIcon />
               </ListItemIcon>
               <ListItemText
-                primary="Database Tasks"
+                primary="DB Dashboard"
                 sx={{ opacity: open ? 1 : 0 }}
               />
             </ListItemButton>
@@ -117,7 +118,7 @@ export default function Navbar() {
           <ListItem
             disablePadding
             sx={{ display: "block" }}
-            onClick={() => navigate("/performance")}
+            onClick={() => navigate("/IndexMonitoring")}
           >
             <ListItemButton
               sx={{
@@ -144,7 +145,7 @@ export default function Navbar() {
           <ListItem
             disablePadding
             sx={{ display: "block" }}
-            onClick={() => navigate("/security")}
+            onClick={() => navigate("/ServerPerformance")}
           >
             <ListItemButton
               sx={{
@@ -162,13 +163,13 @@ export default function Navbar() {
               >
                 <SecurityIcon />
               </ListItemIcon>
-              <ListItemText primary="Security" sx={{ opacity: open ? 1 : 0 }} />
+              <ListItemText primary="Server Performance" sx={{ opacity: open ? 1 : 0 }} />
             </ListItemButton>
           </ListItem>
           <ListItem
             disablePadding
             sx={{ display: "block" }}
-            onClick={() => navigate("/settings")}
+            onClick={() => navigate("/OverallDetails")}
           >
             <ListItemButton
               sx={{
@@ -184,9 +185,9 @@ export default function Navbar() {
                   justifyContent: "center",
                 }}
               >
-                <SettingsIcon />
+                <InfoOutlinedIcon />
               </ListItemIcon>
-              <ListItemText primary="Settings" sx={{ opacity: open ? 1 : 0 }} />
+              <ListItemText primary="Full Details" sx={{ opacity: open ? 1 : 0 }} />
             </ListItemButton>
           </ListItem>
           <ListItem

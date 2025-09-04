@@ -3,14 +3,13 @@ import axios from "axios";
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Paper, Typography, Box, CircularProgress, MenuItem, Select, FormControl,
-  InputLabel, Button, TextField, 
+  InputLabel, Button, TextField
 } from "@mui/material";
-import { CheckCircleOutline, CloudDownload,   } from "@mui/icons-material";
+import { CheckCircleOutline, CloudDownload } from "@mui/icons-material";
 import API_BASE_URL from "./Config";
-import { toast } from "react-toastify";
 
-const BackupSuccess = () => {
-  const [backupData, setBackupData] = useState([]);
+const AllArchivalSucess = () => {
+  const [archivalData, setArchivalData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -22,56 +21,11 @@ const BackupSuccess = () => {
   const [toDate, setToDate] = useState("");
 
   useEffect(() => {
-    // Request notification permission if not already granted
-    if (Notification.permission !== "granted" && Notification.permission !== "denied") {
-      Notification.requestPermission();
-    }
-  
-    const fetchBackupFailedJobs = async () => {
+    const fetchArchivalData = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/BSdata`);
-        if (response.status === 200 && response.data.success) {
-          const failedJobs = response.data.data.filter(job => job.JobStatus === "Failed");
-          failedJobs.forEach(job => {
-            // Show toast notification
-            toast.error(
-              `🔴 Backup Job Failed!\nServer IP: ${job.ServerIP}\nJob Name: ${job.JobName}\nStatus: ${job.JobStatus}`,
-              { position: "top-right", autoClose: 5000 }
-            );
-  
-            // Show browser notification if the tab is not active
-            if (document.visibilityState === "hidden" && Notification.permission === "granted") {
-              new Notification("🔴 Backup Job Failed!", {
-                body: `Server IP: ${job.ServerIP}\nJob: ${job.JobName}`,
-                icon: "/icon.png", // Optional icon
-              });
-            }
-          });
-        } else {
-          console.error("Failed to fetch job data:", response);
-        }
-      } catch (error) {
-        console.error("Error fetching job data:", error);
-      }
-    };
-  
-    // Poll every 30 minutes (1800000 milliseconds)
-    const intervalId = setInterval(fetchBackupFailedJobs, 1800000);
-  
-    // Initial data fetch
-    fetchBackupFailedJobs();
-  
-    return () => clearInterval(intervalId); // Clean up on component unmount
-  }, []);
-  
-
-  useEffect(() => {
-    const fetchBackupData = async () => {
-      try {
-        const response = await axios.get(`${API_BASE_URL}/BSdata`);
-        console.log(response.data)
+        const response = await axios.get(`${API_BASE_URL}/ASAdata`);
         if (response.data.success) {
-          let data = response.data.data;
+          let data = response.data.logins;
 
           data = data.map(item => ({
             ...item,
@@ -80,29 +34,28 @@ const BackupSuccess = () => {
 
           data.sort((a, b) => new Date(b.SucceededDate || 0) - new Date(a.SucceededDate || 0));
 
-          setBackupData(data);
-          setUniqueIPs([...new Set(data.map((item) => item.ServerIP))]);
-          setUniqueJobStatuses([...new Set(data.map((item) => item.JobStatus))]);
-
+          setArchivalData(data);
+          setUniqueIPs([...new Set(data.map(item => item.ServerIP))]);
+          setUniqueJobStatuses([...new Set(data.map(item => item.JobStatus))]);
         } else {
-          setError("❌ Failed to fetch backup success data");
+          setError("❌ Failed to fetch archival success data");
         }
       } catch (error) {
-        setError("❌ Failed to fetch backup success data");
+        setError("❌ Failed to fetch archival success data");
       } finally {
         setLoading(false);
       }
     };
-    fetchBackupData();
+    fetchArchivalData();
   }, []);
 
+
   useEffect(() => {
-    let filtered = backupData;
+    let filtered = archivalData;
   
-    if (backupData.length > 0) {
-      // Find the latest date from available data
+    if (archivalData.length > 0) {
       
-      
+  
       // Apply additional filters
       if (selectedIP) filtered = filtered.filter(item => item.ServerIP === selectedIP);
       if (selectedStatus) filtered = filtered.filter(item => item.JobStatus === selectedStatus);
@@ -115,10 +68,9 @@ const BackupSuccess = () => {
     }
   
     setFilteredData(filtered);
-  }, [selectedIP, selectedStatus, fromDate, toDate, backupData]);
+  }, [selectedIP, selectedStatus, fromDate, toDate, archivalData]);
   
 
-  // Function to Convert Data to CSV and Download
   const downloadCSV = () => {
     if (filteredData.length === 0) {
       alert("No data available to download.");
@@ -126,34 +78,31 @@ const BackupSuccess = () => {
     }
 
     const headers = ["Server IP", "Job Name", "Job Enabled", "Frequency", "Job Status", "Succeeded Date"];
-
     const csvContent = [
-      headers.join(","),  // Add headers
-      ...filteredData.map(backup => [
-        backup.ServerIP,
-        backup.JobName,
-        backup.JobEnabled,
-        backup.Frequency,
-        backup.JobStatus,
-        backup.SucceededDate ? backup.SucceededDate.split("T")[0] : "N/A"
+      headers.join(","),
+      ...filteredData.map(item => [
+        item.ServerIP,
+        item.JobName,
+        item.JobEnabled,
+        item.Frequency,
+        item.JobStatus,
+        item.SucceededDate ? item.SucceededDate.split("T")[0] : "N/A"
       ].join(","))
     ].join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
-
     const a = document.createElement("a");
     a.href = url;
-    a.download = "backup_data.csv";
+    a.download = "archival_data.csv";
     a.click();
-
     URL.revokeObjectURL(url);
   };
 
   return (
     <Box sx={{ padding: "30px" }}>
       <Typography variant="h4" align="center" gutterBottom sx={{ fontWeight: "bold", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <CheckCircleOutline sx={{ marginRight: 1 }} /> Backup Data
+        <CheckCircleOutline sx={{ marginRight: 1 }} /> Archival Data
       </Typography>
 
       {loading ? (
@@ -164,7 +113,6 @@ const BackupSuccess = () => {
         <Typography color="error" align="center">{error}</Typography>
       ) : (
         <>
-          {/* Filters */}
           <Box display="flex" justifyContent="center" mb={2} gap={2}>
             <FormControl sx={{ minWidth: 200 }}>
               <InputLabel>Select Server IP</InputLabel>
@@ -175,8 +123,9 @@ const BackupSuccess = () => {
                 ))}
               </Select>
             </FormControl>
-            
-          
+            <TextField label="From Date" type="date" InputLabelProps={{ shrink: true }} value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+            <TextField label="To Date" type="date" InputLabelProps={{ shrink: true }} value={toDate} onChange={(e) => setToDate(e.target.value)} />
+          </Box>
 
           <Box display="flex" justifyContent="center" gap={1} mb={2}>
             {uniqueJobStatuses.map((status, index) => (
@@ -193,11 +142,7 @@ const BackupSuccess = () => {
               Download Report
             </Button>
           </Box>
-          </Box >
 
-
-
-          {/* Table */}
           <TableContainer component={Paper} sx={{ maxWidth: "100%", borderRadius: "10px", boxShadow: 3, margin: "auto", overflowX: "auto" }}>
             <Table sx={{ minWidth: 900 }}>
               <TableHead>
@@ -208,19 +153,17 @@ const BackupSuccess = () => {
                   <TableCell sx={{ color: "#ffffff", fontWeight: "bold" }}>Frequency</TableCell>
                   <TableCell sx={{ color: "#ffffff", fontWeight: "bold" }}>Job Status</TableCell>
                   <TableCell sx={{ color: "#ffffff", fontWeight: "bold" }}>Succeeded Date</TableCell>
-                  
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredData.map((backup, index) => (
+                {filteredData.map((item, index) => (
                   <TableRow key={index}>
-                    <TableCell>{backup.ServerIP}</TableCell>
-                    <TableCell>{backup.JobName}</TableCell>
-                    <TableCell>{backup.JobEnabled}</TableCell>
-                    <TableCell>{backup.Frequency}</TableCell>
-                    <TableCell>{backup.JobStatus}</TableCell>
-                    <TableCell>{backup.SucceededDate ? backup.SucceededDate.split("T")[0] : "N/A"}</TableCell>
-                    
+                    <TableCell>{item.ServerIP}</TableCell>
+                    <TableCell>{item.JobName}</TableCell>
+                    <TableCell>{item.JobEnabled}</TableCell>
+                    <TableCell>{item.Frequency}</TableCell>
+                    <TableCell>{item.JobStatus}</TableCell>
+                    <TableCell>{item.SucceededDate ? item.SucceededDate.split("T")[0] : "N/A"}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -232,4 +175,4 @@ const BackupSuccess = () => {
   );
 };
 
-export default BackupSuccess;
+export default AllArchivalSucess;

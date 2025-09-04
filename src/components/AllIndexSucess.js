@@ -7,9 +7,10 @@ import {
 } from "@mui/material";
 import { CheckCircleOutline, CloudDownload } from "@mui/icons-material";
 import API_BASE_URL from "./Config";
+import { saveAs } from "file-saver";
 
-const ArchivalSuccess = () => {
-  const [archivalData, setArchivalData] = useState([]);
+const AllIndexSuccess = () => {
+  const [logins, setLogins] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -21,95 +22,80 @@ const ArchivalSuccess = () => {
   const [toDate, setToDate] = useState("");
 
   useEffect(() => {
-    const fetchArchivalData = async () => {
+    const fetchLogins = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/ASdata`);
+        const response = await axios.get(`${API_BASE_URL}/AISdata`);
         if (response.data.success) {
           let data = response.data.logins;
 
+          // Replace "Unknown" with "Not Scheduled"
           data = data.map(item => ({
             ...item,
             JobStatus: item.JobStatus === "Unknown" ? "Not Scheduled" : item.JobStatus
           }));
 
-          data.sort((a, b) => new Date(b.SucceededDate || 0) - new Date(a.SucceededDate || 0));
+          // Sort data by SucceededDate in descending order
+          data.sort((a, b) => {
+            return new Date(b.SucceededDate || "1970-01-01") - new Date(a.SucceededDate || "1970-01-01");
+          });
 
-          setArchivalData(data);
+          setLogins(data);
           setUniqueIPs([...new Set(data.map(item => item.ServerIP))]);
           setUniqueJobStatuses([...new Set(data.map(item => item.JobStatus))]);
         } else {
-          setError("❌ Failed to fetch archival success data");
+          setError("❌ Failed to fetch index success data");
         }
       } catch (error) {
-        setError("❌ Failed to fetch archival success data");
+        setError("❌ Failed to fetch index success data");
       } finally {
         setLoading(false);
       }
     };
-    fetchArchivalData();
+    fetchLogins();
   }, []);
 
 
   useEffect(() => {
-    let filtered = archivalData;
-  
-    if (archivalData.length > 0) {
-      // Find the latest date from available data
-  
-  
-      // Apply additional filters
-      if (selectedIP) filtered = filtered.filter(item => item.ServerIP === selectedIP);
-      if (selectedStatus) filtered = filtered.filter(item => item.JobStatus === selectedStatus);
-      if (fromDate && toDate) {
-        filtered = filtered.filter(item => {
-          const succeededDate = item.SucceededDate ? item.SucceededDate.split("T")[0] : "";
-          return succeededDate >= fromDate && succeededDate <= toDate;
-        });
-      }
+    let filtered = logins;
+    if (selectedIP) filtered = filtered.filter(item => item.ServerIP === selectedIP);
+    if (selectedStatus) filtered = filtered.filter(item => item.JobStatus === selectedStatus);
+    if (fromDate && toDate) {
+      filtered = filtered.filter(item => {
+        const succeededDate = item.SucceededDate ? item.SucceededDate.split("T")[0] : "";
+        return succeededDate >= fromDate && succeededDate <= toDate;
+      });
     }
-  
     setFilteredData(filtered);
-  }, [selectedIP, selectedStatus, fromDate, toDate, archivalData]);
-  
+  }, [selectedIP, selectedStatus, fromDate, toDate, logins]);
 
   const downloadCSV = () => {
     if (filteredData.length === 0) {
       alert("No data available to download.");
       return;
     }
-
     const headers = ["Server IP", "Job Name", "Job Enabled", "Frequency", "Job Status", "Succeeded Date"];
     const csvContent = [
       headers.join(","),
-      ...filteredData.map(item => [
-        item.ServerIP,
-        item.JobName,
-        item.JobEnabled,
-        item.Frequency,
-        item.JobStatus,
-        item.SucceededDate ? item.SucceededDate.split("T")[0] : "N/A"
+      ...filteredData.map(login => [
+        login.ServerIP,
+        login.JobName,
+        login.JobEnabled,
+        login.Frequency,
+        login.JobStatus,
+        login.SucceededDate ? login.SucceededDate.split("T")[0] : "N/A"
       ].join(","))
     ].join("\n");
-
     const blob = new Blob([csvContent], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "archival_data.csv";
-    a.click();
-    URL.revokeObjectURL(url);
+    saveAs(blob, "IndexSuccessData.csv");
   };
 
   return (
     <Box sx={{ padding: "30px" }}>
       <Typography variant="h4" align="center" gutterBottom sx={{ fontWeight: "bold", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <CheckCircleOutline sx={{ marginRight: 1 }} /> Archival Data
+        <CheckCircleOutline sx={{ marginRight: 1 }} /> Index Data
       </Typography>
-
       {loading ? (
-        <Box display="flex" justifyContent="center" mt={3}>
-          <CircularProgress sx={{ color: "#1976d2" }} />
-        </Box>
+        <Box display="flex" justifyContent="center" mt={3}><CircularProgress /></Box>
       ) : error ? (
         <Typography color="error" align="center">{error}</Typography>
       ) : (
@@ -124,8 +110,21 @@ const ArchivalSuccess = () => {
                 ))}
               </Select>
             </FormControl>
-            
-          
+            <TextField
+              label="From Date"
+              type="date"
+              InputLabelProps={{ shrink: true }}
+              value={fromDate}
+              onChange={e => setFromDate(e.target.value)}
+            />
+            <TextField
+              label="To Date"
+              type="date"
+              InputLabelProps={{ shrink: true }}
+              value={toDate}
+              onChange={e => setToDate(e.target.value)}
+            />
+          </Box>
 
           <Box display="flex" justifyContent="center" gap={1} mb={2}>
             {uniqueJobStatuses.map((status, index) => (
@@ -133,17 +132,10 @@ const ArchivalSuccess = () => {
                 {status}
               </Button>
             ))}
-            <Button
-              variant="contained"
-              sx={{ backgroundColor: "#388e3c", "&:hover": { backgroundColor: "#2e7d32" } }}
-              onClick={downloadCSV}
-              startIcon={<CloudDownload />}
-            >
+            <Button variant="contained" sx={{ backgroundColor: "#388e3c", "&:hover": { backgroundColor: "#2e7d32" } }} onClick={downloadCSV} startIcon={<CloudDownload />}>
               Download Report
             </Button>
           </Box>
-          </Box>
-
           <TableContainer component={Paper} sx={{ maxWidth: "100%", borderRadius: "10px", boxShadow: 3, margin: "auto", overflowX: "auto" }}>
             <Table sx={{ minWidth: 900 }}>
               <TableHead>
@@ -157,14 +149,14 @@ const ArchivalSuccess = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredData.map((item, index) => (
+                {filteredData.map((login, index) => (
                   <TableRow key={index}>
-                    <TableCell>{item.ServerIP}</TableCell>
-                    <TableCell>{item.JobName}</TableCell>
-                    <TableCell>{item.JobEnabled}</TableCell>
-                    <TableCell>{item.Frequency}</TableCell>
-                    <TableCell>{item.JobStatus}</TableCell>
-                    <TableCell>{item.SucceededDate ? item.SucceededDate.split("T")[0] : "N/A"}</TableCell>
+                    <TableCell>{login.ServerIP}</TableCell>
+                    <TableCell>{login.JobName}</TableCell>
+                    <TableCell>{login.JobEnabled}</TableCell>
+                    <TableCell>{login.Frequency}</TableCell>
+                    <TableCell>{login.JobStatus}</TableCell>
+                    <TableCell>{login.SucceededDate ? login.SucceededDate.split("T")[0] : "N/A"}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -176,4 +168,4 @@ const ArchivalSuccess = () => {
   );
 };
 
-export default ArchivalSuccess;
+export default AllIndexSuccess;

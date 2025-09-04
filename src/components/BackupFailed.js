@@ -12,6 +12,7 @@ import {
   Box,
   CircularProgress,
 } from "@mui/material";
+import API_BASE_URL from "./Config";
 
 const BackupFailed = () => {
   const [failedData, setFailedData] = useState([]);
@@ -21,7 +22,7 @@ const BackupFailed = () => {
   useEffect(() => {
     const fetchFailedData = async () => {
       try {
-        const response = await axios.get("http://192.168.1.81:5000/BFdata");
+        const response = await axios.get(`${API_BASE_URL}/BFdata`);
         if (response.data.success) {
           setFailedData(response.data.logins);
         } else {
